@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wax — Feature Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F5F0E8;
+    --cream-dark: #EDE7D9;
+    --ink: #1A1714;
+    --ink-soft: #3D3830;
+    --ink-muted: #7A7267;
+    --gold: #B8933A;
+    --gold-light: #D4AE5C;
+    --gold-subtle: #F0E4C4;
+    --rule: #D6CDB8;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  html { background: var(--cream); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.7; }
+
+  body { max-width: 860px; margin: 0 auto; padding: 60px 40px 120px; }
+
+  /* Header */
+  .doc-header { border-bottom: 1px solid var(--rule); padding-bottom: 48px; margin-bottom: 64px; }
+  .doc-label { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .doc-title { font-family: var(--serif); font-size: 64px; font-weight: 600; line-height: 1.05; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 12px; }
+  .doc-subtitle { font-family: var(--serif); font-size: 22px; font-weight: 400; font-style: italic; color: var(--ink-muted); margin-bottom: 32px; }
+  .doc-meta { display: flex; gap: 32px; }
+  .doc-meta-item { font-size: 13px; color: var(--ink-muted); }
+  .doc-meta-item strong { color: var(--ink-soft); font-weight: 500; }
+
+  /* Section */
+  .section { margin-bottom: 72px; }
+  .section-number { font-family: var(--serif); font-size: 13px; color: var(--gold); letter-spacing: 0.06em; margin-bottom: 8px; display: block; }
+  .section-title { font-family: var(--serif); font-size: 32px; font-weight: 600; color: var(--ink); line-height: 1.15; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+
+  p { color: var(--ink-soft); margin-bottom: 16px; font-size: 15.5px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* Phase blocks */
+  .phases { display: flex; flex-direction: column; gap: 0; margin: 32px 0; }
+  .phase { display: grid; grid-template-columns: 28px 1fr; gap: 0 28px; padding: 28px 0; border-bottom: 1px solid var(--rule); }
+  .phase:last-child { border-bottom: none; }
+  .phase-marker { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  .phase-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  .phase-line { width: 1px; background: var(--rule); flex: 1; margin-top: 8px; }
+  .phase:last-child .phase-line { display: none; }
+  .phase-content {}
+  .phase-label { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+  .phase-title { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--ink); margin-bottom: 10px; line-height: 1.2; }
+  .phase-desc { font-size: 14.5px; color: var(--ink-muted); line-height: 1.65; }
+
+  /* Feature list */
+  .feature-group { margin-bottom: 40px; }
+  .feature-group-title { font-family: var(--serif); font-size: 19px; font-weight: 600; color: var(--ink); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .feature-group-title::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .feature-list li { font-size: 14.5px; color: var(--ink-soft); padding-left: 20px; position: relative; line-height: 1.6; }
+  .feature-list li::before { content: '—'; position: absolute; left: 0; color: var(--gold-light); }
+  .feature-list li strong { color: var(--ink); font-weight: 500; }
+
+  /* Data model table */
+  .table-wrap { overflow-x: auto; margin: 24px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); padding: 10px 16px; text-align: left; border-bottom: 2px solid var(--rule); background: var(--cream-dark); }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid var(--rule); color: var(--ink-soft); vertical-align: top; line-height: 1.55; }
+  tbody tr:last-child td { border-bottom: none; }
+  code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12.5px; background: var(--cream-dark); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 6px; color: var(--ink-soft); }
+  .pk { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); background: var(--gold-subtle); border-radius: 3px; padding: 1px 5px; margin-left: 6px; }
+
+  /* Tech stack pills */
+  .stack-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+  .stack-pill { font-size: 13px; font-weight: 400; color: var(--ink-soft); background: var(--cream-dark); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 14px; }
+  .stack-pill span { font-weight: 500; color: var(--ink); }
+
+  /* Design principles */
+  .principles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+  .principle { background: var(--cream-dark); border: 1px solid var(--rule); border-radius: 6px; padding: 20px 22px; }
+  .principle-num { font-family: var(--serif); font-size: 28px; font-weight: 400; color: var(--gold-light); line-height: 1; margin-bottom: 8px; }
+  .principle-title { font-weight: 500; font-size: 14.5px; color: var(--ink); margin-bottom: 6px; }
+  .principle-desc { font-size: 13.5px; color: var(--ink-muted); line-height: 1.6; }
+
+  /* Callout */
+  .callout { background: var(--gold-subtle); border-left: 3px solid var(--gold); border-radius: 0 6px 6px 0; padding: 18px 22px; margin: 24px 0; }
+  .callout p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .callout strong { color: var(--ink); }
+
+  /* Footer rule */
+  .doc-footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-muted); display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <p class="doc-label">Product Feature Document — v1.0</p>
+  <h1 class="doc-title">Wax</h1>
+  <p class="doc-subtitle">A real-time, song-by-song album rating tool for intentional listening.</p>
+  <div class="doc-meta">
+    <div class="doc-meta-item"><strong>Author</strong> Victor Quan</div>
+    <div class="doc-meta-item"><strong>Status</strong> Pre-development</div>
+    <div class="doc-meta-item"><strong>Target</strong> Personal tool → public app</div>
+    <div class="doc-meta-item"><strong>Stack</strong> Spring Boot · React · PostgreSQL</div>
+  </div>
+</header>
+
+<!-- 1. Overview -->
+<section class="section">
+  <span class="section-number">01</span>
+  <h2 class="section-title">Overview</h2>
+  <p>Wax is a lightweight web app that gamifies the album listening experience by prompting users to rate each track as they finish it — capturing an honest, in-the-moment reaction rather than a retrospective score shaped by memory or bias.</p>
+  <p>The core insight is simple: most music rating platforms (RateYourMusic, Album of the Year, Last.fm) are manual, retroactive, and disconnected from the actual act of listening. Wax is none of those things. It integrates with Spotify to detect what you're listening to in real time, prompts you after each song, and delivers a calculated final score when the album ends — a receipt for the listening session.</p>
+  <p>Built for personal use first. Designed to grow.</p>
+</section>
+
+<!-- 2. The Problem -->
+<section class="section">
+  <span class="section-number">02</span>
+  <h2 class="section-title">The problem</h2>
+  <p>Streaming has eroded the album format. Shuffle culture and algorithmic playlists fragment records into individual songs, stripping them of the narrative arc, pacing, and sequencing that artists deliberately construct.</p>
+  <p>Even for listeners who still consume albums in full, the act of rating them is broken. You either assign a score days later — after the dopamine of new music has faded and a single standout track has skewed your whole perception — or you use a platform that demands you rate 15 songs from memory in one sitting.</p>
+  <div class="callout">
+    <p><strong>The gap:</strong> No tool currently ties real-time Spotify playback to a track-by-track prompted rating system. That combination is what Wax is built around.</p>
+  </div>
+</section>
+
+<!-- 3. Phased Roadmap -->
+<section class="section">
+  <span class="section-number">03</span>
+  <h2 class="section-title">Phased roadmap</h2>
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-marker"><div class="phase-dot"></div><div class="phase-line"></div></div>
+      <div class="phase-content">
+        <p class="phase-label">Phase 1 — Current</p>
+        <h3 class="phase-title">Personal tool</h3>
+        <p class="phase-desc">A standalone app (separate repo, Railway service) for solo use. Spotify OAuth, real-time now-playing detection via polling, track-by-track rating prompts, album scorecard at the end. PostgreSQL-backed history. Linked from portfolio as a project.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-marker"><div class="phase-dot"></div><div class="phase-line"></div></div>
+      <div class="phase-content">
+        <p class="phase-label">Phase 2 — Near-term</p>
+        <h3 class="phase-title">Polish & shareability</h3>
+        <p class="phase-desc">Public scorecard pages per session (shareable link). Personal album history with aggregate scores over time. A visual "album report card" designed for sharing. Optional notes per track. Genre and artist stats.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-marker"><div class="phase-dot"></div><div class="phase-line"></div></div>
+      <div class="phase-content">
+        <p class="phase-label">Phase 3 — Future</p>
+        <h3 class="phase-title">Multi-user & social</h3>
+        <p class="phase-desc">Public user auth (JWT, already built in Fantasy Seers). Community scores vs personal scores. Friends' ratings. A feed of recent sessions. Album discovery driven by friend activity.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Phase 1 Features -->
+<section class="section">
+  <span class="section-number">04</span>
+  <h2 class="section-title">Phase 1 — Feature list</h2>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Spotify integration</h3>
+    <ul class="feature-list">
+      <li><strong>OAuth login</strong> — user authenticates via Spotify, token stored and refreshed server-side</li>
+      <li><strong>Now-playing detection</strong> — polls Spotify's <code>/me/player/currently-playing</code> endpoint every 5–10 seconds to detect the active track and album</li>
+      <li><strong>Track change detection</strong> — compares current track ID to previously polled state; triggers rating prompt on change</li>
+      <li><strong>Album context</strong> — reads album name, artwork, track list, and total track count from the Spotify response to frame the session</li>
+    </ul>
+  </div>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Session management</h3>
+    <ul class="feature-list">
+      <li><strong>Session start — intentional, not automatic</strong> — the user manually hits a "Start Session" button in Wax when they sit down to listen to an album. Wax reads whatever is currently playing from Spotify at that moment and anchors the session to that album. This eliminates false sessions from shuffle, radio, or mid-album resumption.</li>
+      <li><strong>Session state</strong> — tracks which songs have been rated vs pending within the active session; displayed as a progress indicator in the UI</li>
+      <li><strong>Session end — triggered by completion</strong> — a session is marked <code>COMPLETED</code> and the final scorecard is surfaced automatically when all tracks on the album have been rated (or skipped). There is no manual end trigger.</li>
+      <li><strong>Incomplete sessions</strong> — if the user closes the app mid-album, the session is preserved with status <code>IN_PROGRESS</code> and can be resumed from the Wax home screen</li>
+    </ul>
+  </div>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Rating UX</h3>
+    <ul class="feature-list">
+      <li><strong>Post-track prompt</strong> — a minimal, non-disruptive overlay or panel appears after a track change, prompting the user to rate the previous song</li>
+      <li><strong>1–10 scale</strong> — simple numeric rating; no half-points in v1 to keep interaction fast</li>
+      <li><strong>Skip option</strong> — user can skip rating a track (it is excluded from the average)</li>
+      <li><strong>Track metadata</strong> — prompt displays album art, track name, and track number for context</li>
+      <li><strong>Optional note</strong> — a single free-text line the user can optionally add per track (deferred to Phase 2 if it adds friction)</li>
+    </ul>
+  </div>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Scorecard</h3>
+    <ul class="feature-list">
+      <li><strong>Final album score</strong> — average of all rated tracks, displayed prominently at session end</li>
+      <li><strong>Track breakdown</strong> — ordered list of every track with its individual score</li>
+      <li><strong>Highlight / lowlight</strong> — highest and lowest rated track called out visually</li>
+      <li><strong>Session history</strong> — past scorecards accessible from a personal history page</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5. Data Model -->
+<section class="section">
+  <span class="section-number">05</span>
+  <h2 class="section-title">Data model</h2>
+  <p>Three tables cover the full v1 feature set. All PKs are <code>BIGSERIAL</code> following existing project conventions.</p>
+
+  <h3 class="feature-group-title" style="margin-top: 28px;">listening_sessions</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code> <span class="pk">PK</span></td><td><code>BIGSERIAL</code></td><td>Primary key</td></tr>
+        <tr><td><code>user_id</code></td><td><code>BIGINT</code></td><td>FK → users (Phase 3); nullable in Phase 1 (single user)</td></tr>
+        <tr><td><code>spotify_album_id</code></td><td><code>VARCHAR</code></td><td>Spotify album URI (e.g. <code>3T4tUhGYeRNVUGevb0wThu</code>)</td></tr>
+        <tr><td><code>album_name</code></td><td><code>VARCHAR</code></td><td>Cached from Spotify at session start</td></tr>
+        <tr><td><code>album_artist</code></td><td><code>VARCHAR</code></td><td>Cached from Spotify at session start</td></tr>
+        <tr><td><code>album_art_url</code></td><td><code>VARCHAR</code></td><td>Cached from Spotify at session start</td></tr>
+        <tr><td><code>total_tracks</code></td><td><code>INT</code></td><td>Total track count on the album</td></tr>
+        <tr><td><code>status</code></td><td><code>VARCHAR</code></td><td><code>IN_PROGRESS</code> / <code>COMPLETED</code> / <code>ABANDONED</code></td></tr>
+        <tr><td><code>final_score</code></td><td><code>NUMERIC(4,2)</code></td><td>Calculated average; populated on session end</td></tr>
+        <tr><td><code>started_at</code></td><td><code>TIMESTAMP</code></td><td></td></tr>
+        <tr><td><code>completed_at</code></td><td><code>TIMESTAMP</code></td><td>Nullable until session ends</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="feature-group-title" style="margin-top: 36px;">track_ratings</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code> <span class="pk">PK</span></td><td><code>BIGSERIAL</code></td><td>Primary key</td></tr>
+        <tr><td><code>session_id</code></td><td><code>BIGINT</code></td><td>FK → listening_sessions</td></tr>
+        <tr><td><code>spotify_track_id</code></td><td><code>VARCHAR</code></td><td>Spotify track URI</td></tr>
+        <tr><td><code>track_name</code></td><td><code>VARCHAR</code></td><td>Cached at rating time</td></tr>
+        <tr><td><code>track_number</code></td><td><code>INT</code></td><td>Position on album (1-indexed)</td></tr>
+        <tr><td><code>rating</code></td><td><code>INT</code></td><td>1–10; nullable if skipped</td></tr>
+        <tr><td><code>skipped</code></td><td><code>BOOLEAN</code></td><td>True if user skipped rating</td></tr>
+        <tr><td><code>note</code></td><td><code>TEXT</code></td><td>Optional free-text; nullable</td></tr>
+        <tr><td><code>rated_at</code></td><td><code>TIMESTAMP</code></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 6. Tech Stack -->
+<section class="section">
+  <span class="section-number">06</span>
+  <h2 class="section-title">Tech stack</h2>
+  <p>Wax re-uses the existing portfolio infrastructure. No new tools needed for v1.</p>
+  <div class="stack-grid">
+    <div class="stack-pill"><span>Frontend</span> — React + Vite</div>
+    <div class="stack-pill"><span>Backend</span> — Spring Boot (Java)</div>
+    <div class="stack-pill"><span>Database</span> — PostgreSQL on Railway</div>
+    <div class="stack-pill"><span>Auth</span> — Spotify OAuth 2.0</div>
+    <div class="stack-pill"><span>Spotify API</span> — polling now-playing endpoint</div>
+    <div class="stack-pill"><span>Deployment</span> — Railway (new service)</div>
+    <div class="stack-pill"><span>Migrations</span> — Flyway</div>
+    <div class="stack-pill"><span>Caching</span> — Caffeine (token + album metadata)</div>
+  </div>
+  <div class="callout" style="margin-top: 24px;">
+    <p><strong>Key technical constraint:</strong> Spotify does not offer webhooks for playback events. Track change detection relies on polling the <code>/me/player/currently-playing</code> endpoint every ~5 seconds. This is rate-limit safe for personal use but requires consideration before scaling to many users.</p>
+  </div>
+</section>
+
+<!-- 7. Design Principles -->
+<section class="section">
+  <span class="section-number">07</span>
+  <h2 class="section-title">Design principles</h2>
+  <div class="principles">
+    <div class="principle">
+      <div class="principle-num">01</div>
+      <div class="principle-title">Minimum friction above all</div>
+      <p class="principle-desc">Rating a song should take under 5 seconds. Any interaction that pulls the user out of listening for longer than that is a failure.</p>
+    </div>
+    <div class="principle">
+      <div class="principle-num">02</div>
+      <div class="principle-title">The app should feel barely there</div>
+      <p class="principle-desc">Wax is a companion to the listening session, not the main event. It lives in the background and surfaces only when needed.</p>
+    </div>
+    <div class="principle">
+      <div class="principle-num">03</div>
+      <div class="principle-title">Honest data over pretty data</div>
+      <p class="principle-desc">The value of real-time ratings is their rawness. The UX must not encourage second-guessing or retroactive editing of scores.</p>
+    </div>
+    <div class="principle">
+      <div class="principle-num">04</div>
+      <div class="principle-title">Build for one, design for many</div>
+      <p class="principle-desc">Every data model decision should account for multi-user expansion. No technical debt that requires a rewrite to go public.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Open Questions -->
+<section class="section">
+  <span class="section-number">08</span>
+  <h2 class="section-title">Open questions for v1</h2>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Decided</h3>
+    <ul class="feature-list">
+      <li><strong>Session start</strong> — ✓ Intentional. User manually presses "Start Session" in Wax; no auto-detection of listening activity.</li>
+      <li><strong>Session end</strong> — ✓ Triggered automatically when all tracks on the album have been rated or skipped. No manual end action required.</li>
+    </ul>
+  </div>
+
+  <div class="feature-group">
+    <h3 class="feature-group-title">Still open</h3>
+    <ul class="feature-list">
+      <li><strong>Rating prompt timing</strong> — prompt fires when Wax detects a track change via polling. Should there be a short delay (e.g. 2–3 seconds) to let the new song settle before the prompt appears, or is immediate fine?</li>
+      <li><strong>Retroactive edits</strong> — can the user change a rating after submitting it within the same session? Leaning yes for v1, but needs an explicit decision as it affects the service layer.</li>
+      <li><strong>Mobile UX</strong> — primarily a desktop tool (browser tab alongside Spotify desktop) or responsive enough for mobile too? Affects layout decisions from the start.</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="doc-footer">
+  <span>Wax — Feature Document v1.1</span>
+  <span>Victor Quan · 2026</span>
+</footer>
+
+</body>
+</html>
