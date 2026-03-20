@@ -35,6 +35,9 @@ public class TrackRating {
     @Column(name = "track_number", nullable = false)
     private int trackNumber;
 
+    @Column(name = "disc_number", nullable = false)
+    private int discNumber;
+
     @Column(name = "rating")
     private Integer rating;
 

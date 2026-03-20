@@ -72,6 +72,20 @@ public class SessionService {
                 .toList();
     }
 
+    public SessionDto abandonSession(Long sessionId) {
+        ListeningSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+
+        if (!"IN_PROGRESS".equals(session.getStatus())) {
+            throw new IllegalStateException("Session is not in progress");
+        }
+
+        session.setStatus("ABANDONED");
+        ListeningSession saved = sessionRepository.save(session);
+        List<TrackRatingDto> ratings = loadRatings(saved.getId());
+        return toSessionDto(saved, ratings);
+    }
+
     void completeIfFinished(Long sessionId) {
         ListeningSession session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null || !"IN_PROGRESS".equals(session.getStatus())) {
@@ -130,6 +144,7 @@ public class SessionService {
                 r.getSpotifyTrackId(),
                 r.getTrackName(),
                 r.getTrackNumber(),
+                r.getDiscNumber(),
                 r.getRating(),
                 r.isSkipped(),
                 r.getNote(),

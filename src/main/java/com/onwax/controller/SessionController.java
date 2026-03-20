@@ -7,6 +7,7 @@ import com.onwax.service.SpotifyService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -76,5 +77,16 @@ public class SessionController {
         return sessionService.getSessionById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<SessionDto> abandonSession(@PathVariable Long id, HttpSession session) {
+        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
+        if (spotifyUserId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        SessionDto abandoned = sessionService.abandonSession(id);
+        return ResponseEntity.ok(abandoned);
     }
 }

@@ -5,6 +5,7 @@ public record SubmitRatingRequest(
         String spotifyTrackId,
         String trackName,
         int trackNumber,
+        int discNumber,
         Integer rating,
         boolean skipped,
         String note

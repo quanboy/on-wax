@@ -1,0 +1,1 @@
+ALTER TABLE track_ratings ADD COLUMN disc_number INT NOT NULL DEFAULT 1;

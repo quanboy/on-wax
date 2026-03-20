@@ -34,8 +34,14 @@ public class SpotifyController {
         String spotifyUserId = spotifyService.exchangeCodeForTokens(code);
         session.setAttribute("spotifyUserId", spotifyUserId);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, "http://localhost:5173")
+                .header(HttpHeaders.LOCATION, "http://127.0.0.1:5173")
                 .build();
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<Void> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/now-playing")

@@ -37,6 +37,7 @@ public class RatingController {
                 request.spotifyTrackId(),
                 request.trackName(),
                 request.trackNumber(),
+                request.discNumber(),
                 request.rating(),
                 request.skipped(),
                 request.note(),

@@ -21,7 +21,7 @@ public class RatingService {
     }
 
     public TrackRatingDto submitRating(Long sessionId, String spotifyTrackId, String trackName,
-                                       int trackNumber, Integer rating, boolean skipped,
+                                       int trackNumber, int discNumber, Integer rating, boolean skipped,
                                        String note, SessionService sessionService) {
         ListeningSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
@@ -37,6 +37,7 @@ public class RatingService {
         trackRating.setSpotifyTrackId(spotifyTrackId);
         trackRating.setTrackName(trackName);
         trackRating.setTrackNumber(trackNumber);
+        trackRating.setDiscNumber(discNumber);
         trackRating.setRating(rating);
         trackRating.setSkipped(skipped);
         trackRating.setNote(note);
@@ -51,6 +52,7 @@ public class RatingService {
                 saved.getSpotifyTrackId(),
                 saved.getTrackName(),
                 saved.getTrackNumber(),
+                saved.getDiscNumber(),
                 saved.getRating(),
                 saved.isSkipped(),
                 saved.getNote(),

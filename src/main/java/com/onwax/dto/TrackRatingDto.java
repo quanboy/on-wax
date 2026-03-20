@@ -7,6 +7,7 @@ public record TrackRatingDto(
         String spotifyTrackId,
         String trackName,
         int trackNumber,
+        int discNumber,
         Integer rating,
         boolean skipped,
         String note,

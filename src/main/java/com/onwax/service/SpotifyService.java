@@ -172,6 +172,7 @@ public class SpotifyService {
                     item.get("id").asText(),
                     item.get("name").asText(),
                     item.get("track_number").asInt(),
+                    item.get("disc_number").asInt(),
                     album.get("id").asText(),
                     album.get("name").asText(),
                     album.get("artists").get(0).get("name").asText(),

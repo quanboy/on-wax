@@ -20,3 +20,8 @@ export const getSessionById = async (id) => {
   const response = await client.get(`/sessions/${id}`);
   return response.data;
 };
+
+export const abandonSession = async (id) => {
+  const response = await client.delete(`/sessions/${id}`);
+  return response.data;
+};
