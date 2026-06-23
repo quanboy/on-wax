@@ -94,7 +94,7 @@ export default function HomePage() {
   if (!authenticated) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <button onClick={() => { window.location.assign('http://127.0.0.1:8080/spotify/login'); }} style={{ padding: '12px 24px', fontSize: '18px', cursor: 'pointer' }}>
+        <button onClick={() => { window.location.assign(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080'}/spotify/login`); }} style={{ padding: '12px 24px', fontSize: '18px', cursor: 'pointer' }}>
           Connect Spotify
         </button>
       </div>

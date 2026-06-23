@@ -1,0 +1,2 @@
+CREATE INDEX idx_listening_sessions_spotify_user_id ON listening_sessions(spotify_user_id);
+CREATE INDEX idx_track_ratings_session_id ON track_ratings(session_id);

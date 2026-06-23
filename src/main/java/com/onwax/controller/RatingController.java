@@ -3,8 +3,8 @@ package com.onwax.controller;
 import com.onwax.dto.SubmitRatingRequest;
 import com.onwax.dto.TrackRatingDto;
 import com.onwax.service.RatingService;
-import com.onwax.service.SessionService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,15 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class RatingController {
 
     private final RatingService ratingService;
-    private final SessionService sessionService;
 
-    public RatingController(RatingService ratingService, SessionService sessionService) {
+    public RatingController(RatingService ratingService) {
         this.ratingService = ratingService;
-        this.sessionService = sessionService;
     }
 
     @PostMapping
-    public ResponseEntity<TrackRatingDto> submitRating(@RequestBody SubmitRatingRequest request,
+    public ResponseEntity<TrackRatingDto> submitRating(@Valid @RequestBody SubmitRatingRequest request,
                                                        HttpSession session) {
         String spotifyUserId = (String) session.getAttribute("spotifyUserId");
         if (spotifyUserId == null) {
@@ -40,8 +38,7 @@ public class RatingController {
                 request.discNumber(),
                 request.rating(),
                 request.skipped(),
-                request.note(),
-                sessionService
+                request.note()
         );
 
         return ResponseEntity.ok(rating);

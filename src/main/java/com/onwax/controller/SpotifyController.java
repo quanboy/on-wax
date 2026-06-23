@@ -3,6 +3,7 @@ package com.onwax.controller;
 import com.onwax.dto.NowPlayingDto;
 import com.onwax.service.SpotifyService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpotifyController {
 
     private final SpotifyService spotifyService;
+
+    @Value("${server.frontend-url}")
+    private String frontendUrl;
 
     public SpotifyController(SpotifyService spotifyService) {
         this.spotifyService = spotifyService;
@@ -34,7 +38,7 @@ public class SpotifyController {
         String spotifyUserId = spotifyService.exchangeCodeForTokens(code);
         session.setAttribute("spotifyUserId", spotifyUserId);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, "http://127.0.0.1:5173")
+                .header(HttpHeaders.LOCATION, frontendUrl)
                 .build();
     }
 

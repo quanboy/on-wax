@@ -14,15 +14,20 @@ public class RatingService {
 
     private final SessionRepository sessionRepository;
     private final RatingRepository ratingRepository;
+    private final SessionService sessionService;
+    private final BadgeService badgeService;
 
-    public RatingService(SessionRepository sessionRepository, RatingRepository ratingRepository) {
+    public RatingService(SessionRepository sessionRepository, RatingRepository ratingRepository,
+                         SessionService sessionService, BadgeService badgeService) {
         this.sessionRepository = sessionRepository;
         this.ratingRepository = ratingRepository;
+        this.sessionService = sessionService;
+        this.badgeService = badgeService;
     }
 
     public TrackRatingDto submitRating(Long sessionId, String spotifyTrackId, String trackName,
                                        int trackNumber, int discNumber, Integer rating, boolean skipped,
-                                       String note, SessionService sessionService) {
+                                       String note) {
         ListeningSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
@@ -46,6 +51,7 @@ public class RatingService {
         TrackRating saved = ratingRepository.save(trackRating);
 
         sessionService.completeIfFinished(sessionId);
+        badgeService.evaluate(session);
 
         return new TrackRatingDto(
                 saved.getId(),

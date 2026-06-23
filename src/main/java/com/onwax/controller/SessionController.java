@@ -74,7 +74,7 @@ public class SessionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return sessionService.getSessionById(id)
+        return sessionService.getSessionById(id, spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -86,7 +86,7 @@ public class SessionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        SessionDto abandoned = sessionService.abandonSession(id);
+        SessionDto abandoned = sessionService.abandonSession(id, spotifyUserId);
         return ResponseEntity.ok(abandoned);
     }
 }

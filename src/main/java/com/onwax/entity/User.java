@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "spotify_tokens")
-public class SpotifyToken {
+@Table(name = "users")
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,21 +26,18 @@ public class SpotifyToken {
     @Column(name = "spotify_user_id", nullable = false, unique = true)
     private String spotifyUserId;
 
-    @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
 
-    @Column(name = "access_token", nullable = false, columnDefinition = "TEXT")
-    private String accessToken;
+    @Column(name = "display_name")
+    private String displayName;
 
-    @Column(name = "refresh_token", nullable = false, columnDefinition = "TEXT")
-    private String refreshToken;
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
 
-    @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    @Column(name = "bio", columnDefinition = "TEXT")
+    private String bio;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }
