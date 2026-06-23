@@ -64,12 +64,12 @@ class BadgeEngineIntegrationTest {
 
     private void score(Long sessionId, int trackNumber, int rating) {
         ratingService.submitRating(sessionId, "track-" + trackNumber, "Track " + trackNumber,
-                trackNumber, 1, rating, false, null);
+                trackNumber, 1, rating, false, false, null);
     }
 
     private void skip(Long sessionId, int trackNumber) {
         ratingService.submitRating(sessionId, "track-" + trackNumber, "Track " + trackNumber,
-                trackNumber, 1, null, true, null);
+                trackNumber, 1, null, true, false, null);
     }
 
     private long badgeCount(Long userId, String code) {

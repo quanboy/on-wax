@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getFeed } from '../api/userApi';
+import { t } from '../theme';
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -17,63 +18,53 @@ export default function FeedPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getFeed()
-      .then(setFeed)
-      .catch(() => setError('Failed to load feed.'))
-      .finally(() => setLoading(false));
+    getFeed().then(setFeed).catch(() => setError('Failed to load feed.')).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ padding: '40px', color: '#aaa' }}>Loading...</div>;
-  if (error) return <div style={{ padding: '40px', color: '#f55' }}>{error}</div>;
+  const center = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' };
+  if (loading) return <div style={center}><p style={{ color: t.muted, fontFamily: t.serif, fontStyle: 'italic' }}>Loading…</p></div>;
+  if (error) return <div style={center}><p style={{ color: t.error }}>{error}</p></div>;
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '40px 24px', color: '#fff' }}>
-      <div style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '24px' }}>Feed</div>
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '40px 24px' }}>
+      <h1 style={{ fontFamily: t.serif, fontSize: '28px', fontWeight: '700', color: t.text, marginBottom: '28px' }}>
+        What's Spinning
+      </h1>
+
       {feed.length === 0 ? (
-        <div style={{ color: '#666', fontSize: '14px' }}>
-          Nothing here yet. Follow some listeners to see their sessions.
-        </div>
+        <p style={{ fontFamily: t.serif, fontStyle: 'italic', color: t.muted, fontSize: '16px' }}>
+          Follow some listeners to see what they're rating.
+        </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div>
           {feed.map((item) => (
-            <Link
-              key={item.sessionId}
-              to={`/scorecard/${item.sessionId}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
+            <Link key={item.sessionId} to={`/scorecard/${item.sessionId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <div style={{
-                background: '#1a1a1a',
-                borderRadius: '10px',
-                padding: '14px 16px',
-                display: 'flex',
-                gap: '14px',
-                alignItems: 'center',
+                display: 'flex', gap: '16px', alignItems: 'center',
+                padding: '14px 0', borderBottom: `1px solid ${t.border}`,
+                cursor: 'pointer',
               }}>
                 {item.albumArtUrl && (
-                  <img
-                    src={item.albumArtUrl}
-                    alt={item.albumName}
-                    style={{ width: '56px', height: '56px', borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}
-                  />
+                  <img src={item.albumArtUrl} alt={item.albumName} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <p style={{ fontFamily: t.serif, fontWeight: '700', fontSize: '15px', color: t.text, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {item.albumName}
-                  </div>
-                  <div style={{ color: '#888', fontSize: '13px' }}>{item.albumArtist}</div>
-                  <div style={{ marginTop: '6px', fontSize: '13px', color: '#aaa' }}>
-                    <Link to={`/users/${item.username}`} style={{ color: '#1db954', textDecoration: 'none' }}
-                      onClick={e => e.stopPropagation()}>
+                  </p>
+                  <p style={{ fontFamily: t.serif, fontStyle: 'italic', color: t.muted, fontSize: '13px', margin: '2px 0 6px 0' }}>{item.albumArtist}</p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '11px', fontFamily: t.mono }}>
+                    <Link to={`/users/${item.username}`} onClick={e => e.stopPropagation()}
+                      style={{ color: t.accent, textDecoration: 'none' }}>
                       @{item.username}
                     </Link>
-                    {' · '}
-                    {timeAgo(item.completedAt)}
+                    <span style={{ color: t.faint }}>·</span>
+                    <span style={{ color: t.muted }}>{timeAgo(item.completedAt)}</span>
                   </div>
                 </div>
                 {item.finalScore != null && (
-                  <div style={{ fontWeight: 'bold', fontSize: '20px', color: '#1db954', flexShrink: 0 }}>
+                  <span style={{ fontFamily: t.mono, fontSize: '22px', fontWeight: '700', color: t.gold, flexShrink: 0 }}>
                     {parseFloat(item.finalScore).toFixed(1)}
-                  </div>
+                  </span>
                 )}
               </div>
             </Link>

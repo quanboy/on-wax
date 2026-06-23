@@ -1,0 +1,40 @@
+export const t = {
+  bg:           '#0e0a06',
+  surface:      '#1c1208',
+  surfaceHigh:  '#261a0e',
+  accent:       '#c87533',
+  accentDark:   '#9a5a22',
+  gold:         '#d4a44c',
+  text:         '#f0e0c8',
+  muted:        '#806040',
+  faint:        '#3a2415',
+  border:       '#3a2415',
+  error:        '#c8442a',
+  serif:        "'Playfair Display', Georgia, serif",
+  mono:         "'Space Mono', 'Courier New', monospace",
+};
+
+export const btn = {
+  primary: {
+    background: '#c87533',
+    color: '#0e0a06',
+    border: 'none',
+    padding: '10px 28px',
+    fontFamily: "'Playfair Display', Georgia, serif",
+    fontSize: '15px',
+    fontWeight: '700',
+    letterSpacing: '0.04em',
+    cursor: 'pointer',
+    borderRadius: '2px',
+  },
+  ghost: {
+    background: 'transparent',
+    color: '#806040',
+    border: '1px solid #3a2415',
+    padding: '10px 28px',
+    fontFamily: "'Playfair Display', Georgia, serif",
+    fontSize: '15px',
+    cursor: 'pointer',
+    borderRadius: '2px',
+  },
+};

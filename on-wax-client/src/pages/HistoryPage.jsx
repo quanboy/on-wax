@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllSessions } from '../api/sessionApi';
 import thuggerTweet from '../assets/inspiration/thuggertweet.png';
+import { t, btn } from '../theme';
 
 export default function HistoryPage() {
   const navigate = useNavigate();
@@ -12,85 +13,73 @@ export default function HistoryPage() {
   useEffect(() => {
     getAllSessions()
       .then((data) => setSessions(data))
-      .catch((err) => {
-        if (err.response?.status !== 401) {
-          setError(err.response?.data?.message || 'Failed to load history');
-        }
-      })
+      .catch((err) => { if (err.response?.status !== 401) setError(err.response?.data?.message || 'Failed to load history'); })
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p>Loading history...</p>
-      </div>
-    );
-  }
+  const center = { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '70vh', gap: '16px' };
+  if (loading) return <div style={center}><p style={{ color: t.muted, fontFamily: t.serif, fontStyle: 'italic' }}>Loading…</p></div>;
+  if (error) return <div style={center}><p style={{ color: t.error }}>{error}</p></div>;
 
-  if (error) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p style={{ color: 'red' }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (sessions.length === 0) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
-        <p style={{ fontSize: '18px', color: '#888' }}>No sessions yet</p>
-        <button onClick={() => navigate('/')} style={{ marginTop: '12px', padding: '10px 24px', cursor: 'pointer' }}>
-          Start your first session
-        </button>
-      </div>
-    );
-  }
+  if (sessions.length === 0) return (
+    <div style={center}>
+      <p style={{ fontFamily: t.serif, fontStyle: 'italic', color: t.muted, fontSize: '17px' }}>Your crate is empty</p>
+      <button onClick={() => navigate('/')} style={btn.primary}>Start a Session</button>
+      <img src={thuggerTweet} alt="Young Thug tweet" style={{ maxWidth: '380px', borderRadius: '4px', opacity: 0.85, marginTop: '16px' }} />
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px' }}>
-      <h1 style={{ marginBottom: '30px' }}>History</h1>
-      <div style={{ width: '100%', maxWidth: '600px' }}>
-        {sessions.map((s) => (
+    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '28px' }}>
+        <h1 style={{ fontFamily: t.serif, fontSize: '28px', fontWeight: '700', color: t.text }}>The Crate</h1>
+        <button onClick={() => navigate('/')} style={{ ...btn.primary, padding: '8px 20px', fontSize: '12px', letterSpacing: '0.08em' }}>
+          New Session
+        </button>
+      </div>
+
+      <div>
+        {sessions.map((s, i) => (
           <div
             key={s.id}
             onClick={() => navigate(`/scorecard/${s.id}`)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '12px',
-              marginBottom: '8px',
-              borderBottom: '1px solid #eee',
-              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '16px',
+              padding: '14px 0', cursor: 'pointer',
+              borderBottom: `1px solid ${t.border}`,
             }}
           >
-            <img
-              src={s.albumArtUrl}
-              alt={s.albumName}
-              style={{ width: '60px', height: '60px', objectFit: 'cover' }}
-            />
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: '0', fontWeight: 'bold' }}>{s.albumName}</p>
-              <p style={{ margin: '2px 0 0 0', color: '#888', fontSize: '14px' }}>{s.albumArtist}</p>
-              <p style={{ margin: '2px 0 0 0', color: '#888', fontSize: '12px' }}>
-                {new Date(s.startedAt).toLocaleDateString()}
+            <span style={{ fontFamily: t.mono, fontSize: '11px', color: t.faint, minWidth: '24px' }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <img src={s.albumArtUrl} alt={s.albumName} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: t.serif, fontWeight: '700', fontSize: '15px', color: t.text, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {s.albumName}
+              </p>
+              <p style={{ fontFamily: t.serif, fontStyle: 'italic', color: t.muted, fontSize: '13px', margin: '2px 0 0 0' }}>{s.albumArtist}</p>
+              <p style={{ fontFamily: t.mono, fontSize: '10px', color: t.faint, margin: '4px 0 0 0' }}>
+                {new Date(s.startedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
               </p>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
               {s.finalScore ? (
-                <p style={{ margin: '0', fontSize: '24px', fontWeight: 'bold' }}>{s.finalScore}</p>
+                <span style={{ fontFamily: t.mono, fontSize: '20px', fontWeight: '700', color: t.gold }}>
+                  {parseFloat(s.finalScore).toFixed(1)}
+                </span>
               ) : (
-                <p style={{ margin: '0', fontSize: '14px', color: '#888' }}>{s.status}</p>
+                <span style={{ fontFamily: t.mono, fontSize: '11px', color: t.faint, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {s.status.toLowerCase()}
+                </span>
               )}
             </div>
           </div>
         ))}
       </div>
-      <button onClick={() => navigate('/')} style={{ marginTop: '20px', padding: '10px 24px', cursor: 'pointer' }}>
-        New Session
-      </button>
-      <img src={thuggerTweet} alt="Young Thug tweet" style={{ maxWidth: '400px', borderRadius: '8px', marginTop: '30px' }} />
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+        <img src={thuggerTweet} alt="Young Thug tweet" style={{ maxWidth: '380px', borderRadius: '4px', opacity: 0.75 }} />
+      </div>
     </div>
   );
 }
