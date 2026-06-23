@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getActiveSession, getSessionById, abandonSession } from '../api/sessionApi';
 import { getNowPlaying } from '../api/spotifyApi';
@@ -14,6 +14,8 @@ export default function SessionPage() {
   const [fetchError, setFetchError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const prevNowPlayingRef = useRef(null);
+  const sessionRef = useRef(null);
 
   const fetchSession = (sessionId) => {
     const request = sessionId ? getSessionById(sessionId) : getActiveSession();
@@ -28,6 +30,7 @@ export default function SessionPage() {
           return;
         }
         setSession(data);
+        sessionRef.current = data;
       })
       .catch((err) => {
         if (err.response?.status !== 401) {
@@ -39,7 +42,31 @@ export default function SessionPage() {
 
   const fetchNowPlaying = () => {
     getNowPlaying()
-      .then((data) => setNowPlaying(data))
+      .then((data) => {
+        const prev = prevNowPlayingRef.current;
+        const currentSession = sessionRef.current;
+        if (
+          prev &&
+          data &&
+          prev.spotifyTrackId !== data.spotifyTrackId &&
+          currentSession &&
+          !currentSession.ratings?.some((r) => r.spotifyTrackId === prev.spotifyTrackId)
+        ) {
+          submitRating({
+            sessionId: currentSession.id,
+            spotifyTrackId: prev.spotifyTrackId,
+            trackName: prev.trackName,
+            trackNumber: prev.trackNumber,
+            discNumber: prev.discNumber,
+            rating: null,
+            skipped: true,
+            autoSkipped: true,
+            note: null,
+          }).then(() => fetchSession(currentSession.id));
+        }
+        prevNowPlayingRef.current = data;
+        setNowPlaying(data);
+      })
       .catch(() => setNowPlaying(null));
   };
 
@@ -251,7 +278,7 @@ export default function SessionPage() {
                   {index + 1}. {r.trackName}
                 </span>
                 <span style={{ color: r.skipped ? '#888' : 'inherit' }}>
-                  {r.skipped ? 'Skipped' : `${r.rating}/10`}
+                  {r.skipped ? (r.autoSkipped ? 'Auto-skipped' : 'Skipped') : `${r.rating}/10`}
                 </span>
               </div>
             ))}

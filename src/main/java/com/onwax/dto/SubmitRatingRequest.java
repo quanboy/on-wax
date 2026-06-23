@@ -14,5 +14,6 @@ public record SubmitRatingRequest(
         @Min(1) int discNumber,
         @Min(1) @Max(10) Integer rating,
         boolean skipped,
+        boolean autoSkipped,
         @Size(max = 1000) String note
 ) {}

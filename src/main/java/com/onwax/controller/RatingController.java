@@ -38,6 +38,7 @@ public class RatingController {
                 request.discNumber(),
                 request.rating(),
                 request.skipped(),
+                request.autoSkipped(),
                 request.note()
         );
 

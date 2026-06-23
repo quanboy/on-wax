@@ -161,6 +161,7 @@ public class SessionService {
                 r.getDiscNumber(),
                 r.getRating(),
                 r.isSkipped(),
+                r.isAutoSkipped(),
                 r.getNote(),
                 r.getRatedAt()
         );

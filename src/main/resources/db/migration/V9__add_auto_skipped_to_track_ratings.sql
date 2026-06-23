@@ -1,0 +1,1 @@
+ALTER TABLE track_ratings ADD COLUMN auto_skipped BOOLEAN NOT NULL DEFAULT FALSE;

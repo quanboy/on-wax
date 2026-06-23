@@ -45,7 +45,8 @@ export default function ScorecardPage() {
   }
 
   const ratedTracks = session.ratings?.filter((r) => !r.skipped) || [];
-  const skippedTracks = session.ratings?.filter((r) => r.skipped) || [];
+  const skippedTracks = session.ratings?.filter((r) => r.skipped && !r.autoSkipped) || [];
+  const autoSkippedTracks = session.ratings?.filter((r) => r.autoSkipped) || [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px' }}>
@@ -83,14 +84,14 @@ export default function ScorecardPage() {
                 {r.note && <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#888' }}>{r.note}</p>}
               </div>
               <span style={{ color: r.skipped ? '#888' : 'inherit', fontWeight: r.skipped ? 'normal' : 'bold' }}>
-                {r.skipped ? 'Skipped' : `${r.rating}/10`}
+                {r.skipped ? (r.autoSkipped ? 'Auto-skipped' : 'Skipped') : `${r.rating}/10`}
               </span>
             </div>
           ))}
       </div>
 
       <p style={{ marginTop: '20px', fontSize: '14px', color: '#888' }}>
-        {ratedTracks.length} rated · {skippedTracks.length} skipped
+        {ratedTracks.length} rated · {skippedTracks.length} skipped · {autoSkippedTracks.length} auto-skipped
       </p>
 
       <iframe
