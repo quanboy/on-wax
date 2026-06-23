@@ -42,3 +42,9 @@ src/main/resources/application.yaml
 
 ### Node ###
 on-wax-client/node_modules/
+
+### Dev artifacts ###
+*.log
+screenshot*.png
+screenshot*.js
+screenshot*.mjs
