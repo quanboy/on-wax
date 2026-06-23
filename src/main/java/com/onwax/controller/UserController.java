@@ -2,16 +2,20 @@ package com.onwax.controller;
 
 import com.onwax.dto.EarnedBadgeDto;
 import com.onwax.dto.ProfileDto;
+import com.onwax.dto.UpdateProfileRequest;
 import com.onwax.service.BadgeService;
 import com.onwax.service.FollowService;
 import com.onwax.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +44,20 @@ public class UserController {
         return userService.getProfileBySpotifyUserId(spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ProfileDto> updateMe(@Valid @RequestBody UpdateProfileRequest request,
+                                               HttpSession session) {
+        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
+        if (spotifyUserId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            return ResponseEntity.ok(userService.updateProfile(spotifyUserId, request));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @GetMapping("/me/badges")

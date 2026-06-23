@@ -61,6 +61,28 @@ public class UserService {
         return userRepository.findBySpotifyUserId(spotifyUserId).map(User::getId);
     }
 
+    @Transactional
+    public ProfileDto updateProfile(String spotifyUserId, com.onwax.dto.UpdateProfileRequest request) {
+        User user = userRepository.findBySpotifyUserId(spotifyUserId)
+                .orElseThrow(() -> new IllegalStateException("No user for spotifyUserId: " + spotifyUserId));
+
+        if (request.username() != null && !request.username().equals(user.getUsername())) {
+            if (userRepository.existsByUsername(request.username())) {
+                throw new IllegalArgumentException("Username already taken: " + request.username());
+            }
+            user.setUsername(request.username());
+        }
+        if (request.displayName() != null) {
+            user.setDisplayName(request.displayName());
+        }
+        if (request.bio() != null) {
+            user.setBio(request.bio());
+        }
+
+        userRepository.save(user);
+        return toProfileDto(user, null);
+    }
+
     private ProfileDto toProfileDto(User user, Long viewerUserId) {
         long followersCount = followRepository.countByFollowedId(user.getId());
         long followingCount = followRepository.countByFollowerId(user.getId());

@@ -8,4 +8,5 @@ export const getFollowers = (username) => client.get(`/users/${username}/followe
 export const getFollowing = (username) => client.get(`/users/${username}/following`).then(r => r.data);
 export const followUser = (username) => client.post(`/users/${username}/follow`).then(r => r.data);
 export const unfollowUser = (username) => client.delete(`/users/${username}/follow`).then(r => r.data);
+export const updateMyProfile = (data) => client.patch('/users/me', data).then(r => r.data);
 export const getFeed = () => client.get('/feed').then(r => r.data);
