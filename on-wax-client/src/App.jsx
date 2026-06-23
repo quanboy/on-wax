@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage';
 import SessionPage from './pages/SessionPage';
 import ScorecardPage from './pages/ScorecardPage';
 import HistoryPage from './pages/HistoryPage';
+import ProfilePage from './pages/ProfilePage';
+import FeedPage from './pages/FeedPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
         <Route path="/session" element={<SessionPage />} />
         <Route path="/scorecard/:id" element={<ScorecardPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/feed" element={<FeedPage />} />
+        <Route path="/users/:username" element={<ProfilePage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

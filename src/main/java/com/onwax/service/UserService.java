@@ -2,6 +2,8 @@ package com.onwax.service;
 
 import com.onwax.dto.ProfileDto;
 import com.onwax.entity.User;
+import com.onwax.repository.FollowRepository;
+import com.onwax.repository.SessionRepository;
 import com.onwax.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,15 +17,16 @@ public class UserService {
     private static final int MAX_USERNAME_LENGTH = 30;
 
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
+    private final SessionRepository sessionRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, FollowRepository followRepository,
+                       SessionRepository sessionRepository) {
         this.userRepository = userRepository;
+        this.followRepository = followRepository;
+        this.sessionRepository = sessionRepository;
     }
 
-    /**
-     * Create or update the local user for a Spotify account. Called on every login so
-     * profile fields stay in sync with Spotify. Username is only assigned on first creation.
-     */
     @Transactional
     public User upsertFromSpotify(String spotifyUserId, String displayName, String avatarUrl) {
         User user = userRepository.findBySpotifyUserId(spotifyUserId).orElseGet(User::new);
@@ -45,11 +48,38 @@ public class UserService {
     }
 
     public Optional<ProfileDto> getProfileBySpotifyUserId(String spotifyUserId) {
-        return userRepository.findBySpotifyUserId(spotifyUserId).map(this::toProfileDto);
+        return userRepository.findBySpotifyUserId(spotifyUserId)
+                .map(u -> toProfileDto(u, null));
     }
 
-    public Optional<ProfileDto> getProfileByUsername(String username) {
-        return userRepository.findByUsername(username).map(this::toProfileDto);
+    public Optional<ProfileDto> getProfileByUsername(String username, Long viewerUserId) {
+        return userRepository.findByUsername(username)
+                .map(u -> toProfileDto(u, viewerUserId));
+    }
+
+    public Optional<Long> getUserIdBySpotifyUserId(String spotifyUserId) {
+        return userRepository.findBySpotifyUserId(spotifyUserId).map(User::getId);
+    }
+
+    private ProfileDto toProfileDto(User user, Long viewerUserId) {
+        long followersCount = followRepository.countByFollowedId(user.getId());
+        long followingCount = followRepository.countByFollowerId(user.getId());
+        long sessionCount = sessionRepository.countByUserIdAndStatus(user.getId(), "COMPLETED");
+        Boolean isFollowing = (viewerUserId != null && !viewerUserId.equals(user.getId()))
+                ? followRepository.existsByFollowerIdAndFollowedId(viewerUserId, user.getId())
+                : null;
+        return new ProfileDto(
+                user.getId(),
+                user.getUsername(),
+                user.getDisplayName(),
+                user.getAvatarUrl(),
+                user.getBio(),
+                user.getCreatedAt(),
+                followersCount,
+                followingCount,
+                sessionCount,
+                isFollowing
+        );
     }
 
     private String generateUniqueUsername(String base) {
@@ -75,16 +105,5 @@ public class UserService {
             slug = slug.substring(0, MAX_USERNAME_LENGTH).replaceAll("-+$", "");
         }
         return slug;
-    }
-
-    private ProfileDto toProfileDto(User user) {
-        return new ProfileDto(
-                user.getId(),
-                user.getUsername(),
-                user.getDisplayName(),
-                user.getAvatarUrl(),
-                user.getBio(),
-                user.getCreatedAt()
-        );
     }
 }

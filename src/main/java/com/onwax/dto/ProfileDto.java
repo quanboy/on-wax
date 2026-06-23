@@ -8,5 +8,9 @@ public record ProfileDto(
         String displayName,
         String avatarUrl,
         String bio,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        long followersCount,
+        long followingCount,
+        long sessionCount,
+        Boolean isFollowing
 ) {}
