@@ -1,6 +1,6 @@
 import client from './client';
 
-export const getMyProfile = () => client.get('/users/me').then(r => r.data);
+export const getMyProfile = () => client.get('/users/me', { skipAuthRedirect: true }).then(r => r.data);
 export const getMyBadges = () => client.get('/users/me/badges').then(r => r.data);
 export const getProfile = (username) => client.get(`/users/${username}`).then(r => r.data);
 export const getBadges = (username) => client.get(`/users/${username}/badges`).then(r => r.data);
