@@ -14,10 +14,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import org.springframework.security.access.AccessDeniedException;
+
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * End-to-end badge engine test against a real Postgres (Testcontainers), driving the
@@ -63,12 +66,14 @@ class BadgeEngineIntegrationTest {
     }
 
     private void score(Long sessionId, int trackNumber, int rating) {
-        ratingService.submitRating(sessionId, "track-" + trackNumber, "Track " + trackNumber,
+        String owner = sessionRepository.findById(sessionId).orElseThrow().getSpotifyUserId();
+        ratingService.submitRating(owner, sessionId, "track-" + trackNumber, "Track " + trackNumber,
                 trackNumber, 1, rating, false, false, null);
     }
 
     private void skip(Long sessionId, int trackNumber) {
-        ratingService.submitRating(sessionId, "track-" + trackNumber, "Track " + trackNumber,
+        String owner = sessionRepository.findById(sessionId).orElseThrow().getSpotifyUserId();
+        ratingService.submitRating(owner, sessionId, "track-" + trackNumber, "Track " + trackNumber,
                 trackNumber, 1, null, true, false, null);
     }
 
@@ -117,5 +122,15 @@ class BadgeEngineIntegrationTest {
 
         assertThat(badgeCount(user.getId(), "HALF_ALBUM")).isEqualTo(1);
         assertThat(badgeCount(user.getId(), "FULL_ALBUM")).isZero();
+    }
+
+    @Test
+    void cannotRateIntoAnotherUsersSession() {
+        User owner = newUser();
+        ListeningSession session = newSession(owner, 4);
+
+        assertThatThrownBy(() -> ratingService.submitRating(
+                "someone-else", session.getId(), "track-1", "Track 1", 1, 1, 7, false, false, null))
+                .isInstanceOf(AccessDeniedException.class);
     }
 }

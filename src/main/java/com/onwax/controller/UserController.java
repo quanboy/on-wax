@@ -6,10 +6,10 @@ import com.onwax.dto.UpdateProfileRequest;
 import com.onwax.service.BadgeService;
 import com.onwax.service.FollowService;
 import com.onwax.service.UserService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -35,12 +35,10 @@ public class UserController {
         this.followService = followService;
     }
 
+    // --- Own profile (authenticated; principal guaranteed non-null by SecurityConfig) ---
+
     @GetMapping("/me")
-    public ResponseEntity<ProfileDto> me(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<ProfileDto> me(@AuthenticationPrincipal String spotifyUserId) {
         return userService.getProfileBySpotifyUserId(spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -48,11 +46,7 @@ public class UserController {
 
     @PatchMapping("/me")
     public ResponseEntity<ProfileDto> updateMe(@Valid @RequestBody UpdateProfileRequest request,
-                                               HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+                                               @AuthenticationPrincipal String spotifyUserId) {
         try {
             return ResponseEntity.ok(userService.updateProfile(spotifyUserId, request));
         } catch (IllegalArgumentException e) {
@@ -61,21 +55,16 @@ public class UserController {
     }
 
     @GetMapping("/me/badges")
-    public ResponseEntity<List<EarnedBadgeDto>> myBadges(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<List<EarnedBadgeDto>> myBadges(@AuthenticationPrincipal String spotifyUserId) {
         return ResponseEntity.ok(badgeService.getEarnedBadgesBySpotifyUserId(spotifyUserId));
     }
 
+    // --- Public profiles (no auth required; principal optional, used for isFollowing) ---
+
     @GetMapping("/{username}")
-    public ResponseEntity<ProfileDto> byUsername(@PathVariable String username, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        Long viewerUserId = spotifyUserId != null
-                ? userService.getUserIdBySpotifyUserId(spotifyUserId).orElse(null)
-                : null;
-        return userService.getProfileByUsername(username, viewerUserId)
+    public ResponseEntity<ProfileDto> byUsername(@PathVariable String username,
+                                                 @AuthenticationPrincipal String spotifyUserId) {
+        return userService.getProfileByUsername(username, viewerId(spotifyUserId))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -86,11 +75,9 @@ public class UserController {
     }
 
     @GetMapping("/{username}/followers")
-    public ResponseEntity<List<ProfileDto>> followers(@PathVariable String username, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        Long viewerUserId = spotifyUserId != null
-                ? userService.getUserIdBySpotifyUserId(spotifyUserId).orElse(null)
-                : null;
+    public ResponseEntity<List<ProfileDto>> followers(@PathVariable String username,
+                                                      @AuthenticationPrincipal String spotifyUserId) {
+        Long viewerUserId = viewerId(spotifyUserId);
         List<ProfileDto> result = followService.getFollowers(username).stream()
                 .map(u -> userService.getProfileByUsername(u.getUsername(), viewerUserId).orElseThrow())
                 .toList();
@@ -98,34 +85,34 @@ public class UserController {
     }
 
     @GetMapping("/{username}/following")
-    public ResponseEntity<List<ProfileDto>> following(@PathVariable String username, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        Long viewerUserId = spotifyUserId != null
-                ? userService.getUserIdBySpotifyUserId(spotifyUserId).orElse(null)
-                : null;
+    public ResponseEntity<List<ProfileDto>> following(@PathVariable String username,
+                                                      @AuthenticationPrincipal String spotifyUserId) {
+        Long viewerUserId = viewerId(spotifyUserId);
         List<ProfileDto> result = followService.getFollowing(username).stream()
                 .map(u -> userService.getProfileByUsername(u.getUsername(), viewerUserId).orElseThrow())
                 .toList();
         return ResponseEntity.ok(result);
     }
 
+    // --- Follow graph mutations (authenticated) ---
+
     @PostMapping("/{username}/follow")
-    public ResponseEntity<Void> follow(@PathVariable String username, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<Void> follow(@PathVariable String username,
+                                       @AuthenticationPrincipal String spotifyUserId) {
         followService.follow(spotifyUserId, username);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{username}/follow")
-    public ResponseEntity<Void> unfollow(@PathVariable String username, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<Void> unfollow(@PathVariable String username,
+                                         @AuthenticationPrincipal String spotifyUserId) {
         followService.unfollow(spotifyUserId, username);
         return ResponseEntity.ok().build();
+    }
+
+    private Long viewerId(String spotifyUserId) {
+        return spotifyUserId != null
+                ? userService.getUserIdBySpotifyUserId(spotifyUserId).orElse(null)
+                : null;
     }
 }

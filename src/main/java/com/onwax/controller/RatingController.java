@@ -3,10 +3,9 @@ package com.onwax.controller;
 import com.onwax.dto.SubmitRatingRequest;
 import com.onwax.dto.TrackRatingDto;
 import com.onwax.service.RatingService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,13 +23,9 @@ public class RatingController {
 
     @PostMapping
     public ResponseEntity<TrackRatingDto> submitRating(@Valid @RequestBody SubmitRatingRequest request,
-                                                       HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+                                                       @AuthenticationPrincipal String spotifyUserId) {
         TrackRatingDto rating = ratingService.submitRating(
+                spotifyUserId,
                 request.sessionId(),
                 request.spotifyTrackId(),
                 request.trackName(),

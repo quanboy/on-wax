@@ -6,10 +6,9 @@ import com.onwax.entity.User;
 import com.onwax.repository.SessionRepository;
 import com.onwax.repository.UserRepository;
 import com.onwax.service.FollowService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,12 +34,7 @@ public class FeedController {
     }
 
     @GetMapping
-    public ResponseEntity<List<FeedItemDto>> getFeed(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<List<FeedItemDto>> getFeed(@AuthenticationPrincipal String spotifyUserId) {
         List<Long> followedIds = followService.getFollowedUserIds(spotifyUserId);
         if (followedIds.isEmpty()) {
             return ResponseEntity.ok(List.of());

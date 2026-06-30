@@ -4,9 +4,9 @@ import com.onwax.dto.NowPlayingDto;
 import com.onwax.dto.SessionDto;
 import com.onwax.service.SessionService;
 import com.onwax.service.SpotifyService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,12 +30,7 @@ public class SessionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createSession(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<?> createSession(@AuthenticationPrincipal String spotifyUserId) {
         Optional<NowPlayingDto> nowPlaying = spotifyService.getNowPlaying(spotifyUserId);
         if (nowPlaying.isEmpty()) {
             return ResponseEntity.badRequest().body("No active Spotify playback detected");
@@ -46,46 +41,28 @@ public class SessionController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<SessionDto> getActiveSession(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<SessionDto> getActiveSession(@AuthenticationPrincipal String spotifyUserId) {
         return sessionService.getActiveSession(spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<SessionDto>> getAllSessions(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<List<SessionDto>> getAllSessions(@AuthenticationPrincipal String spotifyUserId) {
         return ResponseEntity.ok(sessionService.getAllSessions(spotifyUserId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SessionDto> getSessionById(@PathVariable Long id, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<SessionDto> getSessionById(@PathVariable Long id,
+                                                     @AuthenticationPrincipal String spotifyUserId) {
         return sessionService.getSessionById(id, spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<SessionDto> abandonSession(@PathVariable Long id, HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<SessionDto> abandonSession(@PathVariable Long id,
+                                                     @AuthenticationPrincipal String spotifyUserId) {
         SessionDto abandoned = sessionService.abandonSession(id, spotifyUserId);
         return ResponseEntity.ok(abandoned);
     }

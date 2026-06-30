@@ -5,6 +5,7 @@ import com.onwax.entity.ListeningSession;
 import com.onwax.entity.TrackRating;
 import com.onwax.repository.RatingRepository;
 import com.onwax.repository.SessionRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,11 +26,15 @@ public class RatingService {
         this.badgeService = badgeService;
     }
 
-    public TrackRatingDto submitRating(Long sessionId, String spotifyTrackId, String trackName,
-                                       int trackNumber, int discNumber, Integer rating, boolean skipped,
-                                       boolean autoSkipped, String note) {
+    public TrackRatingDto submitRating(String spotifyUserId, Long sessionId, String spotifyTrackId,
+                                       String trackName, int trackNumber, int discNumber, Integer rating,
+                                       boolean skipped, boolean autoSkipped, String note) {
         ListeningSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+
+        if (!session.getSpotifyUserId().equals(spotifyUserId)) {
+            throw new AccessDeniedException("Session does not belong to the current user");
+        }
 
         if (!"IN_PROGRESS".equals(session.getStatus())) {
             throw new IllegalStateException("Session is not in progress");

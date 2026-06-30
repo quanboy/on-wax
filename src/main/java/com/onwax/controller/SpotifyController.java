@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,11 +50,7 @@ public class SpotifyController {
     }
 
     @GetMapping("/now-playing")
-    public ResponseEntity<NowPlayingDto> nowPlaying(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<NowPlayingDto> nowPlaying(@AuthenticationPrincipal String spotifyUserId) {
         return spotifyService.getNowPlaying(spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());

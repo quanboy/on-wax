@@ -96,19 +96,21 @@ real-users launch. When asked "where are we in development," start here.
 6. **Enforce HTTPS** — TLS termination + `Secure`/`SameSite` cookie attributes (platform-dependent).
 
 ### Security & auth hardening
-7. **Add Spring Security + CSRF** — replace hand-rolled `session.getAttribute("spotifyUserId")` checks
-   (duplicated per controller) with a single auth filter; CSRF tokens on all POST/DELETE.
-8. **Authorization model for social** — `GET /users/{username}` is fully public; decide what's public vs
-   private (profiles, sessions, ratings) and enforce it.
+7. **Add Spring Security + CSRF** — DONE. `SecurityConfig` + `SpotifySessionAuthFilter` (bridges the
+   existing Spotify session into Spring Security); per-controller `session.getAttribute` checks replaced
+   with `@AuthenticationPrincipal`; CSRF via `CookieCsrfTokenRepository` (SPA pattern, `XSRF-TOKEN`
+   cookie / `X-XSRF-TOKEN` header), `/spotify/**` exempt.
+8. **Authorization model for social** — DONE (public-profiles / Letterboxd model): profiles, badges, and
+   follow graph are public GETs; feed/sessions/ratings/mutations require auth; ratings now enforce session
+   ownership. Covered by `SecurityAuthorizationTest`.
 9. **Encrypt refresh tokens at rest** — `spotify_tokens` stores them in plaintext.
 10. **Move session storage off in-memory `HttpSession`** — sessions die on restart and don't work multi-instance
     (Redis or DB-backed).
 
 ### Correctness & data
-11. **Add tests** — badge engine is now covered (`BadgeServiceTest` unit + `BadgeEngineIntegrationTest`
-    via Testcontainers Postgres). Still need: auth callback / token exchange, session lifecycle, and the
-    social layer once built. (The avatar_url `VARCHAR(500)` overflow bug, fixed in V8, is exactly what a
-    test would have caught.)
+11. **Add tests** — covered: badge engine (`BadgeServiceTest` unit + `BadgeEngineIntegrationTest`), and
+    security authorization rules + CSRF (`SecurityAuthorizationTest`, MockMvc + Testcontainers). Still
+    need: auth callback / token exchange, session lifecycle, follow-graph/feed behavior.
 12. **Improve error handling/observability** — `exchangeCodeForTokens` wraps all failures in a generic
     `RuntimeException` and the cause gets swallowed in logs. Add real monitoring.
 13. **Fix session-creation race** — "one IN_PROGRESS session per user" is app-enforced only; add a DB
