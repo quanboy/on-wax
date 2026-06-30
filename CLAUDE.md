@@ -19,7 +19,8 @@ A full-stack album rating app powered by Spotify. Users authenticate with Spotif
 ```
 on-wax/
   src/main/java/com/onwax/
-    config/          # SpotifyProperties, CacheConfig, WebConfig
+    config/          # SpotifyProperties, CacheConfig, WebConfig (CORS), SecurityConfig,
+                     #   SpotifySessionAuthFilter, SpaCsrfTokenRequestHandler, CsrfCookieFilter
     controller/      # SpotifyController, SessionController, RatingController, UserController
     dto/             # NowPlayingDto, SessionDto, TrackRatingDto, SubmitRatingRequest, ProfileDto, EarnedBadgeDto
     entity/          # User, SpotifyToken, ListeningSession, TrackRating, Badge, UserBadge
