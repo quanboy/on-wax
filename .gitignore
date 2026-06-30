@@ -39,6 +39,7 @@ build/
 *.p12
 src/main/resources/application.yml
 src/main/resources/application.yaml
+secrets.local.ps1
 
 ### Node ###
 on-wax-client/node_modules/
