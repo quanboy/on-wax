@@ -5,9 +5,9 @@ A full-stack album rating app powered by Spotify. Users authenticate with Spotif
 ## Tech Stack
 
 ### Backend
-- Java 21, Spring Boot 3.5.12, Maven
+- Java 25, Spring Boot 3.5.12, Maven
 - PostgreSQL 16 (Docker container `onwax-db`)
-- Flyway migrations (V1-V8), Spring Data JPA, Lombok
+- Flyway migrations (V1-V10), Spring Data JPA, Lombok
 - Caffeine cache, RestTemplate for Spotify API
 
 ### Frontend
@@ -28,7 +28,7 @@ on-wax/
     repository/      # UserRepository, SpotifyTokenRepository, SessionRepository, RatingRepository, BadgeRepository, UserBadgeRepository
     service/         # SpotifyService, SessionService, RatingService, UserService, BadgeService
   src/main/resources/
-    db/migration/    # V1-V8 Flyway SQL migrations
+    db/migration/    # V1-V10 Flyway SQL migrations
     application.yml  # App config (datasource, Spotify OAuth creds)
   on-wax-client/
     src/api/         # Axios client (with 401 interceptor), spotifyApi, sessionApi, ratingApi
@@ -87,7 +87,9 @@ real-users launch. When asked "where are we in development," start here.
 ### Feature roadmap (in progress)
 1. **User auth/profiles** — DONE (users table + FK migration V6, profile endpoints, login upsert).
 2. **Badge engine** — DONE (V7; HALF_ALBUM/FULL_ALBUM, per-album, only scored tracks count).
-3. **Social layer** — NOT STARTED (follow graph, profile view rendering badges + stats; feed shape TBD).
+3. **Social layer** — MOSTLY DONE (V10 follows table; follow/unfollow + followers/following endpoints
+   and pages; public profiles with badges/stats/`isFollowing`; feed of followed users' completed sessions).
+   Remaining: user discovery — no search endpoint or UI, profiles are only reachable by URL.
 
 ### Hard blockers for a public launch
 4. **Apply for Spotify Extended Quota Mode** — app is in Development Mode (max 25 manually-allowlisted
@@ -109,9 +111,10 @@ real-users launch. When asked "where are we in development," start here.
     (Redis or DB-backed).
 
 ### Correctness & data
-11. **Add tests** — covered: badge engine (`BadgeServiceTest` unit + `BadgeEngineIntegrationTest`), and
-    security authorization rules + CSRF (`SecurityAuthorizationTest`, MockMvc + Testcontainers). Still
-    need: auth callback / token exchange, session lifecycle, follow-graph/feed behavior.
+11. **Add tests** — covered: badge engine (`BadgeServiceTest` unit + `BadgeEngineIntegrationTest`),
+    security authorization rules + CSRF (`SecurityAuthorizationTest`, MockMvc + Testcontainers), and
+    follow-graph/feed behavior (`FollowFeedBehaviorTest`, same stack). Still need: auth callback /
+    token exchange, session lifecycle.
 12. **Improve error handling/observability** — `exchangeCodeForTokens` wraps all failures in a generic
     `RuntimeException` and the cause gets swallowed in logs. Add real monitoring.
 13. **Fix session-creation race** — "one IN_PROGRESS session per user" is app-enforced only; add a DB
