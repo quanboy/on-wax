@@ -6,6 +6,7 @@ import ScorecardPage from './pages/ScorecardPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import FeedPage from './pages/FeedPage';
+import FollowListPage from './pages/FollowListPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/feed" element={<FeedPage />} />
         <Route path="/users/:username" element={<ProfilePage />} />
+        <Route path="/users/:username/followers" element={<FollowListPage />} />
+        <Route path="/users/:username/following" element={<FollowListPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
