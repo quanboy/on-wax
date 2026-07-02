@@ -10,5 +10,8 @@ public record NowPlayingDto(
         String albumArtist,
         String albumArtUrl,
         int totalTracks,
+        long progressMs,
+        long durationMs,
+        String releaseYear,
         boolean isPlaying
 ) {}

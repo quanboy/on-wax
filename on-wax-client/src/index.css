@@ -7,6 +7,11 @@ body {
   min-height: 100vh;
 }
 
+@keyframes vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #1c1208; }
 ::-webkit-scrollbar-thumb { background: #3a2415; border-radius: 3px; }

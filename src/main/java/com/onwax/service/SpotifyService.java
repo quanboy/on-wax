@@ -208,6 +208,11 @@ public class SpotifyService {
             String albumArtUrl = (images != null && images.isArray() && !images.isEmpty())
                     ? images.get(0).get("url").asText() : null;
 
+            // release_date precision varies ("2014", "2014-12", "2014-12-09"); year is the first 4 chars
+            JsonNode releaseDate = album.get("release_date");
+            String releaseYear = (releaseDate != null && !releaseDate.isNull() && releaseDate.asText().length() >= 4)
+                    ? releaseDate.asText().substring(0, 4) : null;
+
             NowPlayingDto dto = new NowPlayingDto(
                     item.get("id").asText(),
                     item.get("name").asText(),
@@ -218,6 +223,9 @@ public class SpotifyService {
                     albumArtist,
                     albumArtUrl,
                     album.get("total_tracks").asInt(),
+                    json.has("progress_ms") ? json.get("progress_ms").asLong() : 0L,
+                    item.has("duration_ms") ? item.get("duration_ms").asLong() : 0L,
+                    releaseYear,
                     json.get("is_playing").asBoolean()
             );
 
