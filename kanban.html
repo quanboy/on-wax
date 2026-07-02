@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On-Wax — Roadmap Board</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --line:#262b36;
+    --text:#e6e9ef; --muted:#8b93a3;
+    --p0:#ef4444; --p1:#f59e0b; --p2:#3b82f6; --done:#22c55e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--text);padding:24px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:20px;margin:0;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:13px}
+  .bar{display:flex;gap:10px;align-items:center;margin:14px 0 20px;flex-wrap:wrap}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);align-items:center}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:7px;padding:7px 12px;font-size:13px;cursor:pointer}
+  button:hover{border-color:#3a4150}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:220px}
+  .col h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+    margin:4px 4px 12px;display:flex;justify-content:space-between}
+  .count{background:var(--panel2);border-radius:20px;padding:1px 9px;font-size:11px}
+  .col.drop{outline:2px dashed #3a4150;outline-offset:-4px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--p1);
+    border-radius:9px;padding:11px 12px;margin-bottom:10px;cursor:grab;font-size:13px;line-height:1.4}
+  .card:active{cursor:grabbing}
+  .card.dragging{opacity:.4}
+  .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:5px;color:#0f1115}
+  .tag.P0{background:var(--p0)} .tag.P1{background:var(--p1)} .tag.P2{background:var(--p2)}
+  .ttl{font-weight:600;margin-bottom:3px}
+  .desc{color:var(--muted);font-size:12px}
+  .del{background:none;border:none;color:#5a6172;cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+  .del:hover{color:var(--p0)}
+  .p0{border-left-color:var(--p0)} .p1{border-left-color:var(--p1)} .p2{border-left-color:var(--p2)}
+  .add{width:100%;background:none;border:1px dashed var(--line);color:var(--muted);margin-top:2px}
+  .add:hover{color:var(--text)}
+  footer{color:var(--muted);font-size:11px;margin-top:20px}
+</style>
+</head>
+<body>
+  <header>
+    <h1>On-Wax — Roadmap Board</h1>
+    <span class="sub">Stabilize → de-risk → build</span>
+  </header>
+  <div class="bar">
+    <div class="legend">
+      <span><span class="dot" style="background:var(--p0)"></span>P0 · stability</span>
+      <span><span class="dot" style="background:var(--p1)"></span>P1 · trust</span>
+      <span><span class="dot" style="background:var(--p2)"></span>P2 · product</span>
+    </div>
+    <button onclick="reset()" style="margin-left:auto">Reset board</button>
+  </div>
+  <div class="board" id="board"></div>
+  <footer>Drag cards between columns. Layout saves automatically in this browser. Double-click a card title to edit.</footer>
+
+<script>
+const COLS = ["To Do","In Progress","Done"];
+const SEED = [
+  {id:"refresh", p:"P0", t:"Implement Spotify token refresh", d:"Before each call check expires_at; exchange refresh_token for a new access_token and persist. Contained to SpotifyService. Unblocks everything.", col:0},
+  {id:"multiuser", p:"P0", t:"Decide single- vs multi-user", d:"Force the call now — touches auth, every query, the data model. Most expensive decision to defer.", col:0},
+  {id:"tests", p:"P1", t:"Test net on core paths", d:"Money paths only: token refresh, score calc, rating upsert. Cover before changing code further.", col:0},
+  {id:"states", p:"P1", t:"UI error & empty states", d:"Nothing playing, Spotify 401, zero-rating session. Cheap, makes it feel finished vs broken.", col:0},
+  {id:"deploy", p:"P1", t:"Unblock the deploy story", d:"127.0.0.1 coupling blocks shipping. Revisit cookie domain/SameSite + Spotify redirect URI. Known ticket, not now.", col:0},
+  {id:"history", p:"P2", t:"History worth revisiting", d:"Trends, top-rated albums, genre tendencies, re-rate over time. The retention hook.", col:0},
+  {id:"share", p:"P2", t:"Shareable scorecard", d:"Send a scorecard to someone — cheapest growth lever for an app like this.", col:0},
+  {id:"compare", p:"P2", t:"Compare scores", d:"Your score vs friends or vs critic scores. Build only after P0 settled.", col:0},
+  {id:"badges", p:"P2", t:"PARKED · Album completion badges", d:"Earn a CD at 50% completion, vinyl at 100%. Completion = tracks rated & not skipped (strict, no skip-spam). Derivable from track_ratings; store awarded_tier + awarded_at. Needs a 'shelf' collection view. Blocked on token refresh + single/multi-user decision.", col:0},
+];
+
+const KEY="onwax-kanban-v1";
+let cards = load();
+
+function load(){ try{const s=JSON.parse(localStorage.getItem(KEY)); return s&&s.length?s:structuredClone(SEED);}catch(e){return structuredClone(SEED);} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(cards)); }
+function reset(){ if(confirm("Reset to the original objectives?")){cards=structuredClone(SEED);save();render();} }
+
+function render(){
+  const b=document.getElementById("board"); b.innerHTML="";
+  COLS.forEach((name,ci)=>{
+    const col=document.createElement("div"); col.className="col"; col.dataset.col=ci;
+    const items=cards.filter(c=>c.col===ci);
+    col.innerHTML=`<h2>${name}<span class="count">${items.length}</span></h2>`;
+    items.forEach(c=>col.appendChild(cardEl(c)));
+    col.addEventListener("dragover",e=>{e.preventDefault();col.classList.add("drop");});
+    col.addEventListener("dragleave",()=>col.classList.remove("drop"));
+    col.addEventListener("drop",e=>{
+      e.preventDefault();col.classList.remove("drop");
+      const id=e.dataTransfer.getData("id");
+      const card=cards.find(x=>x.id===id); if(card){card.col=ci;save();render();}
+    });
+    b.appendChild(col);
+  });
+}
+
+function cardEl(c){
+  const el=document.createElement("div");
+  el.className="card "+c.p.toLowerCase(); el.draggable=true;
+  el.innerHTML=`<div class="top"><span class="tag ${c.p}">${c.p}</span><button class="del" title="Delete">✕</button></div>
+    <div class="ttl">${esc(c.t)}</div><div class="desc">${esc(c.d)}</div>`;
+  el.addEventListener("dragstart",e=>{e.dataTransfer.setData("id",c.id);el.classList.add("dragging");});
+  el.addEventListener("dragend",()=>el.classList.remove("dragging"));
+  el.querySelector(".del").addEventListener("click",()=>{cards=cards.filter(x=>x.id!==c.id);save();render();});
+  el.querySelector(".ttl").addEventListener("dblclick",()=>{
+    const v=prompt("Edit title:",c.t); if(v!==null){c.t=v;save();render();}
+  });
+  return el;
+}
+function esc(s){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+render();
+</script>
+</body>
+</html>
