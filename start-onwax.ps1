@@ -1,7 +1,10 @@
 # Brings up everything needed to use https://onwax.test, then prints a status board.
 #
-# Self-running services (Caddy + Acrylic DNS) auto-start on boot; this script only
-# verifies them and handles the volatile pieces: Docker + onwax-db, backend, Vite.
+# First-time setup: run setup-admin.ps1 once from an elevated prompt to install the
+# Caddy service, trust its local CA, and add onwax.test to the hosts file.
+#
+# After that: Caddy auto-starts on boot; this script handles the volatile pieces:
+# Docker + onwax-db, backend, Vite.
 #
 # Spotify creds come from secrets.local.ps1 (gitignored). Backend + Vite each launch
 # in their own window so you can watch logs / Ctrl+C them.
@@ -30,11 +33,17 @@ if (-not $env:SPOTIFY_CLIENT_ID -or -not $env:SPOTIFY_CLIENT_SECRET) {
 }
 Write-Status 'Spotify creds' $true 'loaded from secrets.local.ps1'
 
-# --- Self-running services (informational) ---
+# --- Caddy (reverse proxy for onwax.test:443) ---
 $caddy = Get-Service caddy -ErrorAction SilentlyContinue
-Write-Status 'Caddy service (443)' ($caddy.Status -eq 'Running') "$($caddy.Status)"
-$acr = Get-Service AcrylicDNSProxySvc -ErrorAction SilentlyContinue
-Write-Status 'Acrylic DNS service' ($acr.Status -eq 'Running') "$($acr.Status)"
+if (-not $caddy) {
+    Write-Status 'Caddy service' $false 'not installed — run setup-admin.ps1 as Administrator first'
+} elseif ($caddy.Status -ne 'Running') {
+    Start-Service caddy -ErrorAction SilentlyContinue
+    $caddy.Refresh()
+    Write-Status 'Caddy service' ($caddy.Status -eq 'Running') "started"
+} else {
+    Write-Status 'Caddy service (443)' $true 'Running'
+}
 
 # --- Docker daemon ---
 docker ps *> $null
@@ -68,7 +77,7 @@ if (Get-NetTCPConnection -State Listen -LocalPort 8080 -ErrorAction SilentlyCont
 if (Get-NetTCPConnection -State Listen -LocalPort 5173 -ErrorAction SilentlyContinue) {
     Write-Status 'Vite (5173)' $true 'already running'
 } else {
-    Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$client'; npm run dev"
+    Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location '$client'; `$env:VITE_USE_TEST_DOMAIN='true'; npm run dev"
     Write-Status 'Vite (5173)' $true 'launched in new window (booting...)'
 }
 

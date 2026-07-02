@@ -1,0 +1,12 @@
+onwax.test {
+	# API requests go to the Spring Boot backend (strip /api prefix)
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy localhost:8080
+	}
+
+	# Everything else (including HMR websocket) goes to Vite
+	handle {
+		reverse_proxy localhost:5173
+	}
+}

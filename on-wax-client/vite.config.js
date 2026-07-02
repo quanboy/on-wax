@@ -1,19 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+const useTestDomain = process.env.VITE_USE_TEST_DOMAIN === 'true'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     host: '127.0.0.1',
-    // Reachable via the Caddy reverse proxy at https://onwax.test
-    allowedHosts: ['onwax.test'],
-    // HMR websocket goes back through Caddy on 443, not the raw Vite port
-    hmr: {
-      clientPort: 443,
-    },
-    // So /api also resolves when hitting 127.0.0.1:5173 directly (bypassing Caddy).
-    // Via https://onwax.test, Caddy handles /api before it ever reaches Vite.
+    // Only enforce onwax.test host header + route HMR through Caddy when the
+    // test-domain proxy is active. Without this, direct 127.0.0.1:5173 access
+    // (other machines, CI) works normally.
+    ...(useTestDomain && {
+      allowedHosts: ['onwax.test'],
+      hmr: { clientPort: 443 },
+    }),
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8080',
