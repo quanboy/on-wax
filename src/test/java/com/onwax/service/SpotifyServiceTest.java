@@ -42,7 +42,7 @@ class SpotifyServiceTest {
         props.setClientId("client-id");
         props.setClientSecret("client-secret");
         props.setRedirectUri("http://127.0.0.1:8080/spotify/callback");
-        service = new SpotifyService(tokenRepo, props, restTemplate, new ObjectMapper());
+        service = new SpotifyService(tokenRepo, props, restTemplate, new ObjectMapper(), mock(UserService.class));
     }
 
     private SpotifyToken tokenExpiringAt(LocalDateTime expiresAt) {

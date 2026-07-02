@@ -23,6 +23,7 @@ class RatingServiceTest {
     private SessionRepository sessionRepo;
     private RatingRepository ratingRepo;
     private SessionService sessionService;
+    private BadgeService badgeService;
     private RatingService service;
 
     @BeforeEach
@@ -30,7 +31,8 @@ class RatingServiceTest {
         sessionRepo = mock(SessionRepository.class);
         ratingRepo = mock(RatingRepository.class);
         sessionService = mock(SessionService.class);
-        service = new RatingService(sessionRepo, ratingRepo);
+        badgeService = mock(BadgeService.class);
+        service = new RatingService(sessionRepo, ratingRepo, sessionService, badgeService);
         // save() echoes back the entity it was given
         when(ratingRepo.save(any(TrackRating.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -38,6 +40,7 @@ class RatingServiceTest {
     private ListeningSession inProgressSession() {
         ListeningSession s = new ListeningSession();
         s.setId(1L);
+        s.setSpotifyUserId("user1");
         s.setStatus("IN_PROGRESS");
         s.setTotalTracks(10);
         return s;
@@ -50,7 +53,7 @@ class RatingServiceTest {
         existing.setId(99L);
         when(ratingRepo.findBySessionIdAndSpotifyTrackId(1L, "trk")).thenReturn(Optional.of(existing));
 
-        service.submitRating(1L, "trk", "Song", 1, 1, 9, false, "great", sessionService);
+        service.submitRating("user1", 1L, "trk", "Song", 1, 1, 9, false, false, "great");
 
         ArgumentCaptor<TrackRating> captor = ArgumentCaptor.forClass(TrackRating.class);
         verify(ratingRepo).save(captor.capture());
@@ -63,7 +66,7 @@ class RatingServiceTest {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(inProgressSession()));
         when(ratingRepo.findBySessionIdAndSpotifyTrackId(1L, "trk")).thenReturn(Optional.empty());
 
-        TrackRatingDto dto = service.submitRating(1L, "trk", "Song", 2, 1, 6, false, null, sessionService);
+        TrackRatingDto dto = service.submitRating("user1", 1L, "trk", "Song", 2, 1, 6, false, false, null);
 
         ArgumentCaptor<TrackRating> captor = ArgumentCaptor.forClass(TrackRating.class);
         verify(ratingRepo).save(captor.capture());
@@ -77,7 +80,7 @@ class RatingServiceTest {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(inProgressSession()));
         when(ratingRepo.findBySessionIdAndSpotifyTrackId(1L, "trk")).thenReturn(Optional.empty());
 
-        service.submitRating(1L, "trk", "Song", 1, 1, 8, false, null, sessionService);
+        service.submitRating("user1", 1L, "trk", "Song", 1, 1, 8, false, false, null);
 
         verify(sessionService).completeIfFinished(1L);
     }
@@ -87,7 +90,7 @@ class RatingServiceTest {
         when(sessionRepo.findById(1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                service.submitRating(1L, "trk", "Song", 1, 1, 8, false, null, sessionService))
+                service.submitRating("user1", 1L, "trk", "Song", 1, 1, 8, false, false, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -98,7 +101,7 @@ class RatingServiceTest {
         when(sessionRepo.findById(1L)).thenReturn(Optional.of(completed));
 
         assertThatThrownBy(() ->
-                service.submitRating(1L, "trk", "Song", 1, 1, 8, false, null, sessionService))
+                service.submitRating("user1", 1L, "trk", "Song", 1, 1, 8, false, false, null))
                 .isInstanceOf(IllegalStateException.class);
     }
 }

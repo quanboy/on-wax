@@ -44,6 +44,9 @@ public class TrackRating {
     @Column(name = "skipped", nullable = false)
     private boolean skipped;
 
+    @Column(name = "auto_skipped", nullable = false)
+    private boolean autoSkipped;
+
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;
 

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSessionById } from '../api/sessionApi';
+import VinylRecord from '../components/VinylRecord';
+import { t, btn } from '../theme';
 
 export default function ScorecardPage() {
   const { id } = useParams();
@@ -12,105 +14,89 @@ export default function ScorecardPage() {
   useEffect(() => {
     getSessionById(id)
       .then((data) => setSession(data))
-      .catch((err) => {
-        if (err.response?.status !== 401) {
-          setError(err.response?.data?.message || 'Failed to load scorecard');
-        }
-      })
+      .catch((err) => { if (err.response?.status !== 401) setError(err.response?.data?.message || 'Failed to load scorecard'); })
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p>Loading scorecard...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p style={{ color: 'red' }}>{error}</p>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <p style={{ color: '#888' }}>Session not found</p>
-      </div>
-    );
-  }
+  const center = { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh' };
+  if (loading) return <div style={center}><p style={{ color: t.muted, fontFamily: t.serif, fontStyle: 'italic' }}>Loading…</p></div>;
+  if (error) return <div style={center}><p style={{ color: t.error }}>{error}</p></div>;
+  if (!session) return <div style={center}><p style={{ color: t.muted }}>Session not found</p></div>;
 
   const ratedTracks = session.ratings?.filter((r) => !r.skipped) || [];
-  const skippedTracks = session.ratings?.filter((r) => r.skipped) || [];
+  const skippedTracks = session.ratings?.filter((r) => r.skipped && !r.autoSkipped) || [];
+  const autoSkippedTracks = session.ratings?.filter((r) => r.autoSkipped) || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px' }}>
-      <img
-        src={session.albumArtUrl}
-        alt={session.albumName}
-        style={{ width: '200px', height: '200px', objectFit: 'cover' }}
-      />
-      <h1 style={{ marginTop: '20px', marginBottom: '4px' }}>{session.albumName}</h1>
-      <p style={{ color: '#888', margin: '4px 0', fontSize: '18px' }}>{session.albumArtist}</p>
+    <div style={{ maxWidth: '560px', margin: '0 auto', padding: '48px 24px' }}>
 
+      {/* Album + vinyl */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px' }}>
+        <VinylRecord src={session.albumArtUrl} alt={session.albumName} size={220} />
+        <h1 style={{ fontFamily: t.serif, fontSize: '26px', fontWeight: '700', color: t.text, marginTop: '28px', marginBottom: '4px', textAlign: 'center' }}>
+          {session.albumName}
+        </h1>
+        <p style={{ fontFamily: t.serif, fontStyle: 'italic', color: t.muted, fontSize: '16px' }}>{session.albumArtist}</p>
+      </div>
+
+      {/* Score */}
       {session.finalScore && (
-        <div style={{ margin: '20px 0', textAlign: 'center' }}>
-          <p style={{ fontSize: '48px', fontWeight: 'bold', margin: '0' }}>{session.finalScore}</p>
-          <p style={{ color: '#888', margin: '4px 0' }}>/ 10</p>
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <div style={{ display: 'inline-block', border: `2px solid ${t.accent}`, borderRadius: '2px', padding: '16px 40px' }}>
+            <p style={{ fontFamily: t.mono, fontSize: '52px', fontWeight: '700', color: t.gold, lineHeight: 1, margin: 0 }}>
+              {parseFloat(session.finalScore).toFixed(1)}
+            </p>
+            <p style={{ fontFamily: t.serif, fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: t.muted, marginTop: '6px' }}>
+              out of 10
+            </p>
+          </div>
         </div>
       )}
 
-      <div style={{ width: '100%', maxWidth: '500px', marginTop: '20px' }}>
+      {/* Track list */}
+      <div style={{ marginBottom: '24px' }}>
         {session.ratings
           ?.sort((a, b) => a.discNumber - b.discNumber || a.trackNumber - b.trackNumber)
-          .map((r, index) => (
-            <div
-              key={r.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '10px 0',
-                borderBottom: '1px solid #eee',
-              }}
-            >
-              <div>
-                <span>{index + 1}. {r.trackName}</span>
-                {r.note && <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#888' }}>{r.note}</p>}
+          .map((r) => (
+            <div key={r.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+              padding: '12px 0', borderBottom: `1px solid ${t.border}`,
+            }}>
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'baseline', flex: 1 }}>
+                <span style={{ fontFamily: t.mono, fontSize: '11px', color: t.muted, minWidth: '24px', flexShrink: 0 }}>
+                  {String(r.trackNumber).padStart(2, '0')}
+                </span>
+                <div>
+                  <span style={{ fontFamily: t.serif, fontSize: '14px', color: r.skipped ? t.muted : t.text }}>{r.trackName}</span>
+                  {r.note && <p style={{ fontFamily: t.serif, fontStyle: 'italic', fontSize: '12px', color: t.muted, marginTop: '3px' }}>"{r.note}"</p>}
+                </div>
               </div>
-              <span style={{ color: r.skipped ? '#888' : 'inherit', fontWeight: r.skipped ? 'normal' : 'bold' }}>
-                {r.skipped ? 'Skipped' : `${r.rating}/10`}
+              <span style={{ fontFamily: t.mono, fontSize: '13px', fontWeight: '700', color: r.skipped ? t.faint : t.gold, flexShrink: 0, marginLeft: '16px' }}>
+                {r.skipped ? (r.autoSkipped ? 'auto' : 'skip') : `${r.rating}/10`}
               </span>
             </div>
           ))}
       </div>
 
-      <p style={{ marginTop: '20px', fontSize: '14px', color: '#888' }}>
-        {ratedTracks.length} rated · {skippedTracks.length} skipped
+      {/* Stats */}
+      <p style={{ fontFamily: t.mono, fontSize: '11px', color: t.muted, letterSpacing: '0.05em', textAlign: 'center', marginBottom: '32px' }}>
+        {ratedTracks.length} rated · {skippedTracks.length} skipped · {autoSkippedTracks.length} auto-skipped
       </p>
 
-      <iframe
-        width="315"
-        height="560"
-        src="https://www.youtube.com/embed/8odQWosfD58"
-        title="YouTube Short"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        style={{ marginTop: '30px', borderRadius: '8px', border: 'none' }}
-      />
+      {/* YouTube */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+        <iframe
+          width="315" height="560"
+          src="https://www.youtube.com/embed/8odQWosfD58"
+          title="YouTube Short" frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen style={{ borderRadius: '4px', border: 'none' }}
+        />
+      </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-        <button onClick={() => navigate('/')} style={{ padding: '10px 24px', cursor: 'pointer' }}>
-          New Session
-        </button>
-        <button onClick={() => navigate('/history')} style={{ padding: '10px 24px', cursor: 'pointer', background: 'transparent', border: '1px solid #ccc' }}>
-          History
-        </button>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+        <button onClick={() => navigate('/')} style={btn.primary}>New Session</button>
+        <button onClick={() => navigate('/history')} style={btn.ghost}>History</button>
       </div>
     </div>
   );

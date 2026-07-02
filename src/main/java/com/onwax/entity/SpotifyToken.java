@@ -26,6 +26,9 @@ public class SpotifyToken {
     @Column(name = "spotify_user_id", nullable = false, unique = true)
     private String spotifyUserId;
 
+    @Column(name = "user_id", nullable = false, unique = true)
+    private Long userId;
+
     @Column(name = "access_token", nullable = false, columnDefinition = "TEXT")
     private String accessToken;
 

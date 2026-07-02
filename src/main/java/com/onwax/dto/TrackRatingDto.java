@@ -10,6 +10,7 @@ public record TrackRatingDto(
         int discNumber,
         Integer rating,
         boolean skipped,
+        boolean autoSkipped,
         String note,
         LocalDateTime ratedAt
 ) {}

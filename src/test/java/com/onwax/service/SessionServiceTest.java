@@ -4,6 +4,7 @@ import com.onwax.entity.ListeningSession;
 import com.onwax.entity.TrackRating;
 import com.onwax.repository.RatingRepository;
 import com.onwax.repository.SessionRepository;
+import com.onwax.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class SessionServiceTest {
     void setUp() {
         sessionRepo = mock(SessionRepository.class);
         ratingRepo = mock(RatingRepository.class);
-        service = new SessionService(sessionRepo, ratingRepo);
+        service = new SessionService(sessionRepo, ratingRepo, mock(UserRepository.class));
     }
 
     private ListeningSession inProgress(long id, int totalTracks) {

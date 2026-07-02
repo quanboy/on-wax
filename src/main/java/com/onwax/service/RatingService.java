@@ -5,6 +5,7 @@ import com.onwax.entity.ListeningSession;
 import com.onwax.entity.TrackRating;
 import com.onwax.repository.RatingRepository;
 import com.onwax.repository.SessionRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,17 +15,26 @@ public class RatingService {
 
     private final SessionRepository sessionRepository;
     private final RatingRepository ratingRepository;
+    private final SessionService sessionService;
+    private final BadgeService badgeService;
 
-    public RatingService(SessionRepository sessionRepository, RatingRepository ratingRepository) {
+    public RatingService(SessionRepository sessionRepository, RatingRepository ratingRepository,
+                         SessionService sessionService, BadgeService badgeService) {
         this.sessionRepository = sessionRepository;
         this.ratingRepository = ratingRepository;
+        this.sessionService = sessionService;
+        this.badgeService = badgeService;
     }
 
-    public TrackRatingDto submitRating(Long sessionId, String spotifyTrackId, String trackName,
-                                       int trackNumber, int discNumber, Integer rating, boolean skipped,
-                                       String note, SessionService sessionService) {
+    public TrackRatingDto submitRating(String spotifyUserId, Long sessionId, String spotifyTrackId,
+                                       String trackName, int trackNumber, int discNumber, Integer rating,
+                                       boolean skipped, boolean autoSkipped, String note) {
         ListeningSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+
+        if (!session.getSpotifyUserId().equals(spotifyUserId)) {
+            throw new AccessDeniedException("Session does not belong to the current user");
+        }
 
         if (!"IN_PROGRESS".equals(session.getStatus())) {
             throw new IllegalStateException("Session is not in progress");
@@ -40,12 +50,14 @@ public class RatingService {
         trackRating.setDiscNumber(discNumber);
         trackRating.setRating(rating);
         trackRating.setSkipped(skipped);
+        trackRating.setAutoSkipped(autoSkipped);
         trackRating.setNote(note);
         trackRating.setRatedAt(LocalDateTime.now());
 
         TrackRating saved = ratingRepository.save(trackRating);
 
         sessionService.completeIfFinished(sessionId);
+        badgeService.evaluate(session);
 
         return new TrackRatingDto(
                 saved.getId(),
@@ -55,6 +67,7 @@ public class RatingService {
                 saved.getDiscNumber(),
                 saved.getRating(),
                 saved.isSkipped(),
+                saved.isAutoSkipped(),
                 saved.getNote(),
                 saved.getRatedAt()
         );

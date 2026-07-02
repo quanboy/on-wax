@@ -3,9 +3,11 @@ package com.onwax.controller;
 import com.onwax.dto.NowPlayingDto;
 import com.onwax.service.SpotifyService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpotifyController {
 
     private final SpotifyService spotifyService;
+
+    @Value("${server.frontend-url}")
+    private String frontendUrl;
 
     public SpotifyController(SpotifyService spotifyService) {
         this.spotifyService = spotifyService;
@@ -34,7 +39,7 @@ public class SpotifyController {
         String spotifyUserId = spotifyService.exchangeCodeForTokens(code);
         session.setAttribute("spotifyUserId", spotifyUserId);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, "http://127.0.0.1:5173")
+                .header(HttpHeaders.LOCATION, frontendUrl)
                 .build();
     }
 
@@ -45,11 +50,7 @@ public class SpotifyController {
     }
 
     @GetMapping("/now-playing")
-    public ResponseEntity<NowPlayingDto> nowPlaying(HttpSession session) {
-        String spotifyUserId = (String) session.getAttribute("spotifyUserId");
-        if (spotifyUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<NowPlayingDto> nowPlaying(@AuthenticationPrincipal String spotifyUserId) {
         return spotifyService.getNowPlaying(spotifyUserId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());

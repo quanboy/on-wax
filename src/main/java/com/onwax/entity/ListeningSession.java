@@ -27,6 +27,9 @@ public class ListeningSession {
     @Column(name = "spotify_user_id", nullable = false)
     private String spotifyUserId;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     @Column(name = "spotify_album_id", nullable = false)
     private String spotifyAlbumId;
 
