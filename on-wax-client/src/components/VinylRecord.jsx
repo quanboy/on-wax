@@ -40,8 +40,9 @@ export default function VinylRecord({ src, alt, size = 300, spinning = false, ar
           boxShadow: '0 0 0 2px #0a0806, 0 0 0 3px rgba(200,117,51,0.3)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ transform: 'rotate(-90deg)', textAlign: 'center', lineHeight: 1.5 }}>
-            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic', fontWeight: 700, fontSize: art * 0.14, color: '#2a1608' }}>
+          {/* Label text sits above and below the spindle hole, like a real pressing */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: 'italic', fontWeight: 700, fontSize: art * 0.14, color: '#2a1608', marginBottom: art * 0.17 }}>
               on·wax
             </div>
             <div style={{ fontFamily: "'Space Mono', 'Courier New', monospace", fontSize: art * 0.07, letterSpacing: '0.2em', color: '#4a2a12' }}>
