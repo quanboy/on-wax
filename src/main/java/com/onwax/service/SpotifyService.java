@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onwax.config.SpotifyProperties;
 import com.onwax.dto.NowPlayingDto;
 import com.onwax.entity.SpotifyToken;
+import com.onwax.exception.SpotifyAuthException;
 import com.onwax.repository.SpotifyTokenRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -105,7 +106,7 @@ public class SpotifyService {
 
     public String getValidAccessToken(String spotifyUserId) {
         SpotifyToken token = spotifyTokenRepository.findBySpotifyUserId(spotifyUserId)
-                .orElseThrow(() -> new RuntimeException("No token found for user: " + spotifyUserId));
+                .orElseThrow(() -> new SpotifyAuthException("No token found for user: " + spotifyUserId));
 
         if (token.getExpiresAt().isAfter(LocalDateTime.now().plusSeconds(60))) {
             return token.getAccessToken();
@@ -134,11 +135,20 @@ public class SpotifyService {
             token.setAccessToken(newAccessToken);
             token.setExpiresAt(LocalDateTime.now().plusSeconds(expiresIn));
             token.setUpdatedAt(LocalDateTime.now());
+
+            // Spotify may issue a new refresh token on refresh; if so, persist it,
+            // otherwise the existing one keeps working.
+            if (json.hasNonNull("refresh_token")) {
+                token.setRefreshToken(json.get("refresh_token").asText());
+            }
+
             spotifyTokenRepository.save(token);
 
             return newAccessToken;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to refresh token", e);
+            // Refresh failing means the grant is no longer valid (revoked/expired).
+            // Surface as 401 so the user is sent back through OAuth rather than a 500.
+            throw new SpotifyAuthException("Failed to refresh Spotify token for user: " + spotifyUserId, e);
         }
     }
 

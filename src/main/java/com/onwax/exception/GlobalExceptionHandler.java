@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(SpotifyAuthException.class)
+    public ResponseEntity<String> handleSpotifyAuth(SpotifyAuthException e) {
+        // 401 so the frontend response interceptor restarts the OAuth login flow.
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Spotify session expired");
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
